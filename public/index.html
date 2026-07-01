@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ElektroDB – Databázový systém ČSN</title>
+<style>
+  :root{
+    --accent:#0f766e;
+    --accent-strong:#115e59;
+    --bg:#f4f7fb;
+    --card:#ffffff;
+    --border:#d7e0ea;
+    --text:#0f172a;
+    --muted:#5b6b7c;
+    --shadow:0 18px 50px rgba(15, 23, 42, .08);
+    --radius:18px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{
+    font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;
+    background:radial-gradient(circle at top left, rgba(15,118,110,.12), transparent 32%),linear-gradient(180deg,#fff 0%,var(--bg) 100%);
+    color:var(--text);
+    min-height:100vh;
+    line-height:1.5;
+  }
+  a{color:inherit}
+  .page-shell{max-width:1500px;margin:0 auto;padding:1.25rem}
+  .hero{background:linear-gradient(135deg,#0f172a 0%,#163040 42%,#0f766e 100%);color:#fff;border-radius:28px;padding:1.35rem 1.5rem;box-shadow:var(--shadow);overflow:hidden}
+  .hero-top{display:flex;justify-content:space-between;gap:1rem;align-items:flex-start;flex-wrap:wrap}
+  .brand{display:flex;gap:1rem;align-items:center;min-width:0}
+  .brand-mark{width:56px;height:56px;border-radius:18px;display:grid;place-items:center;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.18);font-size:1.5rem;flex-shrink:0}
+  .brand-mark::before{content:var(--icon-mark)}
+  .brand-copy h1{font-size:1.5rem;line-height:1.1;font-weight:800}
+  .brand-copy p{margin-top:.35rem;color:rgba(255,255,255,.82);font-size:.97rem;max-width:64ch}
+  .brand-meta{margin-top:.55rem;font-size:.84rem;color:rgba(255,255,255,.72)}
+  .hero-actions{display:flex;flex-wrap:wrap;gap:.5rem;justify-content:flex-end;align-items:flex-start}
+  .hero-button{border:1px solid rgba(255,255,255,.18);background:rgba(255,255,255,.10);color:#fff;border-radius:999px;padding:.55rem .9rem;font-size:.85rem;cursor:pointer;transition:.15s}
+  .hero-button:hover{background:#fff;color:var(--accent-strong)}
+  .hero-note{margin-top:.55rem;font-size:.84rem;color:rgba(255,255,255,.72)}
+  .app-footer{padding:1rem 0 0;color:var(--muted);font-size:.82rem;text-align:center}
+  .app-footer strong{color:var(--text)}
+  nav.tabs{display:flex;gap:.4rem;flex-wrap:wrap;padding:1rem 0 .5rem}
+  nav.tabs button{padding:.72rem 1rem;border:1px solid var(--border);background:var(--card);cursor:pointer;font-size:.92rem;color:var(--muted);border-radius:999px;box-shadow:0 8px 18px rgba(15,23,42,.04);transition:.18s}
+  nav.tabs button.active{color:#fff;background:var(--accent);border-color:var(--accent);font-weight:700}
+  .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:1rem;padding:1rem 0}
+  .stat{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:1rem 1.1rem;box-shadow:var(--shadow)}
+  .stat-num{font-size:1.8rem;font-weight:800;color:var(--accent)}
+  .stat-lbl{font-size:.82rem;color:var(--muted);margin-top:.2rem}
+  .search-bar{padding:.25rem 0 1rem}
+  .search-bar form{display:flex;gap:.65rem;max-width:860px}
+  .search-bar input{flex:1;padding:.85rem 1rem;border:1px solid var(--border);border-radius:16px;font-size:1rem;background:var(--card);color:var(--text);box-shadow:0 10px 24px rgba(15,23,42,.04)}
+  .search-bar button{padding:.85rem 1.15rem;background:linear-gradient(135deg,var(--accent),var(--accent-strong));color:#fff;border:none;border-radius:16px;cursor:pointer;font-size:.98rem;font-weight:700;box-shadow:0 12px 24px rgba(15,118,110,.22)}
+  .filter-bar{padding:.25rem 0 .85rem;display:flex;gap:.5rem;flex-wrap:wrap;align-items:center}
+  .filter-bar a{padding:.38rem .9rem;border:1px solid var(--border);border-radius:999px;font-size:.85rem;text-decoration:none;color:var(--text);background:var(--card);cursor:pointer;transition:.18s;box-shadow:0 6px 16px rgba(15,23,42,.03)}
+  .filter-bar a.active,.filter-bar a:hover{background:var(--accent);color:#fff;border-color:var(--accent)}
+  .layout{display:grid;grid-template-columns:320px minmax(0,1fr);gap:1rem;padding:0 0 1.5rem;min-height:60vh}
+  .sidebar-inner{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;max-height:62vh;overflow-y:auto;box-shadow:var(--shadow)}
+  .sidebar h3{padding:.9rem 1rem;font-size:.8rem;font-weight:700;background:linear-gradient(180deg,#f8fafc,#eef4f8);border-bottom:1px solid var(--border);color:var(--muted);text-transform:uppercase;letter-spacing:.08em;position:sticky;top:0;z-index:1}
+  .grp-item{display:flex;align-items:center;padding:.7rem 1rem;border-bottom:1px solid var(--border);cursor:pointer;font-size:.88rem;gap:.6rem;transition:.15s}
+  .grp-item:last-child{border-bottom:none}
+  .grp-item:hover,.grp-item.active{background:linear-gradient(90deg, rgba(15,118,110,.08), transparent);color:var(--accent)}
+  .grp-item.active{font-weight:600}
+  .grp-code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.79rem;background:#eef4f8;padding:.16rem .42rem;border-radius:999px;flex-shrink:0;color:var(--muted)}
+  .grp-name{flex:1;line-height:1.3}
+  .grp-count{font-size:.75rem;color:var(--muted);flex-shrink:0}
+  .content{min-width:0;overflow-x:auto}
+  .breadcrumb{font-size:.82rem;color:var(--muted);margin-bottom:.75rem}
+  .breadcrumb a{color:var(--accent);text-decoration:none;cursor:pointer}
+  .breadcrumb a:hover{text-decoration:underline}
+  main{padding:0 0 1.5rem;overflow-x:auto}
+  table{width:100%;border-collapse:collapse;background:var(--card);border-radius:var(--radius);overflow:hidden;border:1px solid var(--border);font-size:.9rem;box-shadow:var(--shadow)}
+  th{background:#f6f9fc;padding:.8rem 1rem;text-align:left;font-weight:700;border-bottom:1px solid var(--border);color:#314155}
+  td{padding:.75rem 1rem;border-bottom:1px solid var(--border);vertical-align:top}
+  tr:last-child td{border-bottom:none}
+  tr:hover td{background:#f8fafc}
+  .badge{display:inline-flex;align-items:center;gap:.25rem;padding:.18rem .55rem;border-radius:999px;font-size:.75rem;font-weight:700;line-height:1.2}
+  .badge-A{background:#dcfce7;color:#166534}
+  .badge-N{background:#fee2e2;color:#991b1b}
+  .badge-P{background:#dbeafe;color:#1e40af}
+  .badge-Z{background:#fef3c7;color:#92400e}
+  .pager{display:flex;gap:.5rem;margin-top:1rem;align-items:center;flex-wrap:wrap}
+  .pager a{padding:.4rem .8rem;border:1px solid var(--border);border-radius:999px;text-decoration:none;color:var(--text);font-size:.85rem;cursor:pointer;transition:.2s;background:var(--card)}
+  .pager a:hover{background:var(--accent);color:#fff;border-color:var(--accent)}
+  .pager span{font-size:.85rem;color:var(--muted)}
+  .detail{max-width:900px}
+  .detail h2{margin-bottom:.65rem;font-size:1.55rem}
+  .detail .meta{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:.75rem;margin-bottom:1rem}
+  .detail .meta-item label{font-size:.74rem;color:var(--muted);display:block;font-weight:700;letter-spacing:.02em;text-transform:uppercase}
+  .detail .meta-item span{font-weight:500;margin-top:.25rem}
+  .anotace{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:1rem;white-space:pre-wrap;font-size:.92rem;line-height:1.65;max-height:320px;overflow:auto;box-shadow:var(--shadow)}
+  .back{display:inline-flex;align-items:center;gap:.35rem;margin-bottom:1rem;color:var(--accent);text-decoration:none;font-size:.92rem;cursor:pointer;font-weight:700}
+  .sub-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:.85rem;margin-top:.5rem}
+  .sub-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:.9rem 1rem;cursor:pointer;transition:.18s;box-shadow:var(--shadow)}
+  .sub-card:hover{border-color:var(--accent);transform:translateY(-1px)}
+  .sub-card .sc-code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.75rem;color:var(--muted)}
+  .sub-card .sc-name{font-size:.92rem;margin:.25rem 0;line-height:1.35;font-weight:600}
+  .sub-card .sc-count{font-size:.75rem;color:var(--muted)}
+  .loading{text-align:center;padding:2rem;color:var(--muted)}
+  .error{background:#fee2e2;color:#991b1b;padding:1rem;border-radius:var(--radius);margin:1rem 0;border:1px solid #fecaca}
+  #tab-list,#tab-groups{display:none}
+  #tab-list.visible,#tab-groups.visible{display:block}
+  @media(max-width:768px){
+    .page-shell{padding:.8rem}
+    .hero{padding:1rem}
+    .layout{grid-template-columns:1fr;gap:1rem}
+    .search-bar form{flex-direction:column}
+  }
+</style>
+</head>
+<body>
+<div class="page-shell">
+  <header class="hero">
+    <div class="hero-top">
+      <div class="brand">
+        <div class="brand-mark" aria-hidden="true">⌘</div>
+        <div class="brand-copy">
+          <h1>ElektroDB</h1>
+          <p>Profesionální databázový systém pro normy ČSN s rychlým vyhledáváním, přehlednými skupinami a detailními záznamy.</p>
+          <div class="brand-meta" id="header-count">Načítám statistiku...</div>
+        </div>
+      </div>
+      <div class="hero-actions">
+        <button class="hero-button" id="refresh-db-btn" type="button">Aktualizovat databázi</button>
+      </div>
+    </div>
+    <div class="hero-note" id="update-status">Databáze je připravena.</div>
+  </header>
+
+  <div class="stats" id="stats" style="opacity:.5"><p class="loading">Načítám statistiku...</p></div>
+
+  <div class="search-bar">
+    <form id="sf">
+      <input id="q" type="search" placeholder="Hledat normu (název nebo identifikátor)..." autocomplete="off">
+      <button type="submit">Hledat</button>
+    </form>
+  </div>
+
+  <nav class="tabs">
+    <button id="btn-list" class="active" onclick="showTab('list')" type="button">Seznam norem</button>
+    <button id="btn-groups" onclick="showTab('groups')" type="button">Skupiny ICS</button>
+  </nav>
+
+  <div id="tab-list" class="visible">
+    <div class="filter-bar" id="filter-bar"><span style="line-height:2;font-size:.85rem;color:var(--muted)">Filtr:</span></div>
+    <main>
+      <div id="search-results"></div>
+      <div id="list" class="loading">Načítám seznam...</div>
+    </main>
+  </div>
+
+  <div id="tab-groups">
+    <div class="layout">
+      <div class="sidebar">
+        <div class="sidebar-inner">
+          <h3>Oblasti ICS</h3>
+          <div id="ics-sidebar" class="loading" style="padding:1rem">Načítám...</div>
+        </div>
+      </div>
+      <div class="content" id="ics-content">
+        <p style="color:var(--muted);font-size:.95rem">Vyberte oblast ze seznamu vlevo.</p>
+      </div>
+    </div>
+  </div>
+
+  <footer class="app-footer">
+    <strong>© 2026 ElektroDB</strong> · Databázový systém ČSN
+  </footer>
+</div>
+
+<script>
+const LABELS = {A:'Aktuální', N:'Neplatná', P:'Platná', Z:'Zrušená'};
+let curPlatnost = null;
+let curOffset = 0;
+let curSearch = null;
+let curICSTop = null;
+let curICSSub = null;
+let curICSOffset = 0;
+let _pagerCb = null;
+
+async function api(url) {
+  const r = await fetch(url);
+  if (!r.ok) throw new Error(await r.text());
+  return r.json();
+}
+
+function _page(o) { if (_pagerCb) _pagerCb(o); }
+
+function showTab(name) {
+  document.getElementById('tab-list').classList.toggle('visible', name === 'list');
+  document.getElementById('tab-groups').classList.toggle('visible', name === 'groups');
+  document.getElementById('btn-list').classList.toggle('active', name === 'list');
+  document.getElementById('btn-groups').classList.toggle('active', name === 'groups');
+  if (name === 'groups' && !curICSTop) loadICSTop();
+}
+
+function badge(p) {
+  return '<span class="badge badge-' + (p || '?') + '">' + (p || '?') + ' ' + (LABELS[p] || '') + '</span>';
+}
+
+function escHtml(s) {
+  return String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
+function normRow(n) {
+  const id = escHtml((n.identif || '').substring(0, 40));
+  const naz = escHtml((n.nazev || '').substring(0, 80));
+  const dt = (n.vydana || '').substring(0, 10);
+  return '<tr><td><a href="#" data-norm-id="' + n.id + '">' + id + '</a></td>'
+       + '<td>' + naz + '</td><td>' + badge(n.platnost) + '</td><td>' + dt + '</td></tr>';
+}
+
+function tableWrap(rows) {
+  return '<table><thead><tr><th>Identifikátor</th><th>Název</th><th>Platnost</th><th>Vydána</th></tr></thead><tbody>'
+       + rows.join('') + '</tbody></table>';
+}
+
+function buildPager(total, offset, limit, cb) {
+  _pagerCb = cb;
+  if (total <= limit) return '';
+  const prev = Math.max(0, offset - limit);
+  const next = offset + limit;
+  let html = '<div class="pager">';
+  if (offset > 0) html += '<a onclick="_page(' + prev + ')">‹ Předchozí</a>';
+  html += '<span>' + (Math.floor(offset / limit) + 1) + ' / ' + Math.ceil(total / limit) + '</span>';
+  if (next < total) html += '<a onclick="_page(' + next + ')">Další ›</a>';
+  html += '</div>';
+  return html;
+}
+
+function normCount(offset, total, limit) {
+  return '<p style="margin-bottom:.5rem;font-size:.85rem;color:var(--muted)">' + (offset + 1) + '–' + Math.min(offset + limit, total) + ' z ' + total.toLocaleString('cs') + '</p>';
+}
+
+document.getElementById('tab-list').addEventListener('click', function (e) {
+  const a = e.target.closest('[data-norm-id]');
+  if (a) { e.preventDefault(); loadDetail(+a.dataset.normId); }
+});
+
+async function loadList(platnost, offset = 0) {
+  curPlatnost = platnost;
+  curOffset = offset;
+  curSearch = null;
+  document.querySelectorAll('.filter-bar a').forEach(function (a) { a.classList.remove('active'); });
+  const el = document.getElementById(platnost ? 'f' + platnost : 'fa');
+  if (el) el.classList.add('active');
+  const url = '/api/norms?limit=50&offset=' + offset + (platnost ? '&platnost=' + platnost : '');
+  try {
+    const data = await api(url);
+    const pager = buildPager(data.total, offset, 50, function (o) { loadList(platnost, o); });
+    document.getElementById('search-results').innerHTML = '';
+    document.getElementById('list').innerHTML = normCount(offset, data.total, 50) + tableWrap(data.results.map(normRow)) + pager;
+  } catch (e) {
+    document.getElementById('list').innerHTML = '<div class="error">Chyba při načítání dat: ' + escHtml(e.message) + '</div>';
+  }
+}
+
+async function doSearch(q) {
+  curSearch = q;
+  curPlatnost = null;
+  document.querySelectorAll('.filter-bar a').forEach(function (a) { a.classList.remove('active'); });
+  try {
+    const data = await api('/api/search?q=' + encodeURIComponent(q));
+    document.getElementById('list').innerHTML = '';
+    document.getElementById('search-results').innerHTML = '<p style="margin-bottom:.5rem;font-size:.85rem;color:var(--muted)">Nalezeno ' + data.count + ' výsledků pro &bdquo;' + escHtml(q) + '&ldquo;</p>' + (data.results.length ? tableWrap(data.results.map(normRow)) : '<p>Nic nenalezeno.</p>');
+  } catch (e) {
+    document.getElementById('search-results').innerHTML = '<div class="error">' + escHtml(e.message) + '</div>';
+  }
+}
+
+document.getElementById('ics-sidebar').addEventListener('click', function (e) {
+  const item = e.target.closest('.grp-item');
+  if (item) loadICSGroup(item.dataset.ics);
+});
+
+document.getElementById('ics-content').addEventListener('click', function (e) {
+  const card = e.target.closest('.sub-card');
+  if (card) { loadICSNorms(card.dataset.ics, 0); return; }
+  const a = e.target.closest('[data-norm-id]');
+  if (a) { e.preventDefault(); loadDetail(+a.dataset.normId); return; }
+  const back = e.target.closest('[data-back-ics]');
+  if (back) loadICSGroup(back.dataset.backIcs);
+});
+
+async function loadICSTop() {
+  try {
+    const groups = await api('/api/groups');
+    document.getElementById('ics-sidebar').innerHTML = groups.map(function (g) {
+      return '<div class="grp-item" data-ics="' + g.ics + '" id="gi' + g.ics + '">'
+        + '<span class="grp-code">' + g.ics + '</span>'
+        + '<span class="grp-name">' + escHtml(g.nazev) + '</span>'
+        + '<span class="grp-count">' + g.pocet.toLocaleString('cs') + '</span>'
+        + '</div>';
+    }).join('');
+  } catch (e) {
+    document.getElementById('ics-sidebar').innerHTML = '<div class="error">' + escHtml(e.message) + '</div>';
+  }
+}
+
+async function loadICSGroup(code) {
+  curICSTop = code;
+  curICSSub = null;
+  curICSOffset = 0;
+  document.querySelectorAll('.grp-item').forEach(function (el) { el.classList.remove('active'); });
+  const gi = document.getElementById('gi' + code);
+  if (gi) gi.classList.add('active');
+  try {
+    const data = await api('/api/groups/' + code);
+    const content = document.getElementById('ics-content');
+    const topNameEl = gi ? gi.querySelector('.grp-name') : null;
+    const topName = escHtml(topNameEl ? topNameEl.textContent : code);
+    if (data.subs && data.subs.length) {
+      content.innerHTML = '<div class="breadcrumb"><a data-back-ics="' + code + '" style="cursor:pointer">' + topName + '</a></div>'
+        + '<div class="sub-grid">'
+        + data.subs.map(function (s) {
+          return '<div class="sub-card" data-ics="' + s.ics + '">'
+            + '<div class="sc-code">' + s.ics + '</div>'
+            + '<div class="sc-name">' + escHtml(s.nazev) + '</div>'
+            + '<div class="sc-count">' + s.pocet.toLocaleString('cs') + ' norem</div>'
+            + '</div>';
+        }).join('')
+        + '</div>';
+    } else {
+      loadICSNorms(code, 0);
+    }
+  } catch (e) {
+    document.getElementById('ics-content').innerHTML = '<div class="error">' + escHtml(e.message) + '</div>';
+  }
+}
+
+async function loadICSNorms(icsCode, offset) {
+  curICSSub = icsCode;
+  curICSOffset = offset;
+  const topCode = icsCode.substring(0, 2);
+  try {
+    const data = await api('/api/groups/' + icsCode + '?limit=50&offset=' + offset);
+    const content = document.getElementById('ics-content');
+    const topEl = document.getElementById('gi' + topCode);
+    const topNameEl = topEl ? topEl.querySelector('.grp-name') : null;
+    const topName = escHtml(topNameEl ? topNameEl.textContent : topCode);
+    const pager = buildPager(data.total, offset, 50, function (o) { loadICSNorms(icsCode, o); });
+    content.innerHTML = '<div class="breadcrumb"><a data-back-ics="' + topCode + '" style="cursor:pointer">' + topName + '</a>' + (icsCode !== topCode ? ' › <span>' + icsCode + '</span>' : '') + '</div>'
+      + normCount(offset, data.total, 50)
+      + tableWrap(data.results.map(normRow))
+      + pager;
+  } catch (e) {
+    document.getElementById('ics-content').innerHTML = '<div class="error">' + escHtml(e.message) + '</div>';
+  }
+}
+
+async function loadDetail(id) {
+  try {
+    const n = await api('/api/norms/' + id);
+    const icsHtml = n.ics.length
+      ? n.ics.map(function (i) { return '<li>' + escHtml(i.ics) + (i.nazev ? ' – ' + escHtml(i.nazev) : '') + '</li>'; }).join('')
+      : '<li>–</li>';
+    const html = '<span class="back" onclick="backToList()">‹ Zpět</span>'
+      + '<div class="detail">'
+      + '<h2>' + escHtml(n.identif || '') + '</h2>'
+      + '<p style="margin-bottom:.5rem;color:var(--muted)">' + escHtml(n.nazev_ang || '') + '</p>'
+      + '<p style="margin-bottom:1rem">' + escHtml(n.nazev || '') + '</p>'
+      + '<div class="meta">'
+        + metaItem('Platnost', badge(n.platnost))
+        + metaItem('Vydána', n.vydana || '–')
+        + metaItem('Účinnost', n.ucinnost || '–')
+        + metaItem('Schválena', n.schvalena || '–')
+        + metaItem('Konec platnosti', n.dat_uk || '–')
+        + metaItem('Skupina', n.skupina || '–')
+        + metaItem('Katalog', n.katalog || '–')
+        + metaItem('Stran', n.strany || '–')
+      + '</div>'
+      + '<p style="font-weight:600;margin-bottom:.5rem">ICS kódy</p>'
+      + '<ul style="margin-left:1.5rem;margin-bottom:1rem;font-size:.92rem">' + icsHtml + '</ul>'
+      + (n.anotace ? '<p style="font-weight:600;margin-bottom:.5rem">Anotace</p><div class="anotace">' + escHtml(n.anotace) + '</div>' : '')
+      + '</div>';
+    const isGroups = document.getElementById('tab-groups').classList.contains('visible');
+    if (isGroups) document.getElementById('ics-content').innerHTML = html;
+    else { document.getElementById('list').innerHTML = ''; document.getElementById('search-results').innerHTML = html; }
+  } catch (e) {
+    document.getElementById('list').innerHTML = '<div class="error">' + escHtml(e.message) + '</div>';
+  }
+}
+
+function metaItem(label, val) {
+  return '<div class="meta-item"><label>' + label + '</label><span>' + val + '</span></div>';
+}
+
+function backToList() {
+  const isGroups = document.getElementById('tab-groups').classList.contains('visible');
+  if (isGroups) {
+    if (curICSSub) loadICSNorms(curICSSub, curICSOffset);
+    else if (curICSTop) loadICSGroup(curICSTop);
+    else document.getElementById('ics-content').innerHTML = '<p style="color:var(--muted)">Vyberte oblast vlevo.</p>';
+  } else {
+    document.getElementById('search-results').innerHTML = '';
+    document.getElementById('list').innerHTML = '';
+    if (curSearch) doSearch(curSearch);
+    else loadList(curPlatnost, curOffset);
+  }
+}
+
+document.getElementById('sf').addEventListener('submit', function (e) {
+  e.preventDefault();
+  const q = document.getElementById('q').value.trim();
+  if (q.length >= 2) { showTab('list'); doSearch(q); }
+});
+
+document.getElementById('refresh-db-btn').addEventListener('click', async function () {
+  const btn = this;
+  const status = document.getElementById('update-status');
+  btn.disabled = true;
+  status.textContent = 'Aktualizuji databázi, počkejte prosím...';
+  try {
+    const response = await fetch('/api/update-database', { method: 'POST' });
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.error || 'Aktualizace selhala');
+    const lines = [];
+    lines.push('Databáze aktualizována: ' + data.after.total.toLocaleString('cs') + ' záznamů.');
+    if (data.changes.totalDelta === 0) {
+      lines.push('Počet záznamů se nezměnil.');
+    } else {
+      lines.push('Celkem změna: ' + (data.changes.totalDelta > 0 ? '+' : '') + data.changes.totalDelta.toLocaleString('cs') + ' záznamů.');
+    }
+    const statusDiff = data.changes.statuses.map(function (s) {
+      return s.label + ': ' + s.before.toLocaleString('cs') + ' → ' + s.after.toLocaleString('cs') + ' (' + (s.delta > 0 ? '+' : '') + s.delta.toLocaleString('cs') + ')';
+    }).join(' · ');
+    lines.push(statusDiff);
+    const tableDiff = data.changes.tables
+      .filter(function (t) { return t.delta !== 0; })
+      .map(function (t) {
+        return t.name + ': ' + t.before.toLocaleString('cs') + ' → ' + t.after.toLocaleString('cs') + ' (' + (t.delta > 0 ? '+' : '') + t.delta.toLocaleString('cs') + ')';
+      });
+    if (tableDiff.length) lines.push(tableDiff.join(' · '));
+    status.innerHTML = lines.join('<br>');
+    await Promise.all([
+      loadList(curPlatnost, curOffset),
+      curSearch ? doSearch(curSearch) : Promise.resolve()
+    ]);
+    if (curICSTop) {
+      await loadICSTop();
+      if (curICSSub) await loadICSNorms(curICSSub, curICSOffset);
+      else await loadICSGroup(curICSTop);
+    }
+  } catch (e) {
+    status.textContent = 'Chyba při aktualizaci databáze: ' + e.message;
+  } finally {
+    btn.disabled = false;
+  }
+});
+
+(async function () {
+  try {
+    const stats = await api('/api/stats');
+    document.getElementById('header-count').textContent = 'Databáze norem ČSN · ' + stats.total.toLocaleString('cs') + ' záznamů';
+    const statsHtml = stats.breakdown.map(function (r) {
+      return '<div class="stat"><div class="stat-num">' + r.pocet.toLocaleString('cs') + '</div><div class="stat-lbl">' + (r.platnost || '?') + ' – ' + (LABELS[r.platnost] || r.platnost) + '</div></div>';
+    }).join('');
+    document.getElementById('stats').innerHTML = statsHtml;
+    const filterHtml = '<span style="line-height:2;font-size:.85rem;color:var(--muted)">Filtr:</span><a href="#" onclick="loadList(null);return false" class="active" id="fa">Vše</a>'
+      + stats.breakdown.map(function (r) {
+        return '<a href="#" onclick="loadList(\'' + r.platnost + '\');return false" id="f' + r.platnost + '">' + r.platnost + ' – ' + (LABELS[r.platnost] || r.platnost) + '</a>';
+      }).join('');
+    document.getElementById('filter-bar').innerHTML = filterHtml;
+    loadList(null);
+  } catch (e) {
+    document.getElementById('header-count').innerHTML = 'Chyba: ' + escHtml(e.message);
+  }
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,28 @@
+version: '3.8'
+
+services:
+  elektro-db:
+    build: .
+    container_name: elektro-db
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./data:/app/data
+      - ./exports:/app/exports
+    environment:
+      - NODE_ENV=production
+      - DB_PATH=/app/data/elektro-db.sqlite
+    restart: unless-stopped
+
+  # Volitelně: nginx proxy
+  nginx:
+    image: nginx:alpine
+    container_name: elektro-db-nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - elektro-db
+    restart: unless-stopped
