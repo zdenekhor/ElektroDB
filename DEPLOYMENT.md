@@ -3,9 +3,10 @@
 ## Obsah
 1. [Lokální nasazení](#lokální-nasazení)
 2. [Docker nasazení](#docker-nasazení)
-3. [Produkční nasazení](#produkční-nasazení)
-4. [CI/CD Pipeline](#cicd-pipeline)
-5. [Monitorování a údržba](#monitorování-a-údržba)
+3. [Render (doporučeno)](#render-doporuceno)
+4. [Produkční nasazení](#produkční-nasazení)
+5. [CI/CD Pipeline](#cicd-pipeline)
+6. [Monitorování a údržba](#monitorování-a-údržba)
 
 ---
 
@@ -98,6 +99,21 @@ docker tag elektro-db username/elektro-db:latest
 # Push
 docker push username/elektro-db:latest
 ```
+
+---
+
+## Render (doporučeno)
+
+Repo už obsahuje `render.yaml`, takže deploy je přímočarý.
+
+1. V Renderu zvolte **New +** -> **Blueprint**
+2. Připojte GitHub repozitář `zdenekhor/ElektroDB`
+3. Po vytvoření služby nastavte v **Environment**:
+  - `BASIC_AUTH_USER` = vaše uživatelské jméno
+  - `BASIC_AUTH_PASS` = silné heslo
+4. Uložte a spusťte redeploy
+
+Po nasazení bude aplikace chráněná HTTP Basic Auth (heslo se vyžaduje pro web i API).
 
 ---
 

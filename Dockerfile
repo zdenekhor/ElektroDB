@@ -1,15 +1,15 @@
-FROM node:18-alpine
+FROM node:20-alpine
 
 WORKDIR /app
 
 # Instalace build tools
-RUN apk add --no-cache python3 make g++ cairo-dev jpeg-dev pango-dev giflib-dev
+RUN apk add --no-cache python3 make g++
 
 # Kopírování package.json
 COPY package*.json ./
 
 # Instalace dependencies
-RUN npm install --build-from-source
+RUN npm ci --omit=dev --build-from-source || npm install --omit=dev --build-from-source
 
 # Kopírování aplikace
 COPY . .
@@ -17,8 +17,8 @@ COPY . .
 # Vytvoření data adresáře
 RUN mkdir -p data exports
 
-# Import dat (při startu kontejneru)
-CMD ["sh", "-c", "npm run import && node src/index.js"]
+# Import dat jen při prvním startu (pokud DB neexistuje)
+CMD ["sh", "-c", "[ -f data/elektro-db.sqlite ] || npm run import; npm start"]
 
 # Port
 EXPOSE 3000

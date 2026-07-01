@@ -1,0 +1,12 @@
+services:
+  - type: web
+    name: elektrodb
+    env: docker
+    autoDeploy: true
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: BASIC_AUTH_USER
+        sync: false
+      - key: BASIC_AUTH_PASS
+        sync: false

@@ -106,6 +106,24 @@ db.close();
 
 MIT
 
+## 🔒 Ochrana heslem (pro veřejný deploy)
+
+Aplikace podporuje HTTP Basic Auth přes env proměnné.
+
+```bash
+BASIC_AUTH_USER=admin
+BASIC_AUTH_PASS=silne-heslo
+npm start
+```
+
+Jakmile jsou nastavené obě proměnné, bez přihlášení se nepůjde dostat na web ani API.
+
+Příklad testu API:
+
+```bash
+curl -u admin:silne-heslo http://localhost:3000/api/stats
+```
+
 ---
 
 **Podrobnosti:** [DEVELOPMENT.md](DEVELOPMENT.md) | **Spuštění:** [SPUŠTĚNÍ.md](SPUŠTĚNÍ.md)
