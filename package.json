@@ -2,7 +2,7 @@
   "name": "elektro-db",
   "version": "1.0.0",
   "description": "Přehledná databáze norem ČSN",
-  "main": "electron-main.js",
+  "main": "src/server.js",
   "type": "module",
   "scripts": {
     "start": "node src/server.js",
@@ -10,12 +10,7 @@
     "search": "node src/cli/search.js",
     "list": "node src/cli/list.js",
     "export": "node src/cli/export.js",
-    "dev": "node --watch src/server.js",
-    "electron-dev": "electron .",
-    "electron-build": "electron-builder",
-    "electron-build:win": "electron-builder --win",
-    "electron-build:mac": "electron-builder --mac",
-    "electron-build:linux": "electron-builder --linux"
+    "dev": "node --watch src/server.js"
   },
   "keywords": [
     "csn",
@@ -28,56 +23,5 @@
     "better-sqlite3": "^12.0.0",
     "dbffile": "^1.12.0",
     "express": "^5.2.1"
-  },
-  "devDependencies": {
-    "@capacitor/android": "^8.4.1",
-    "@capacitor/cli": "^8.4.1",
-    "@capacitor/core": "^8.4.1",
-    "electron": "^42.5.1",
-    "electron-builder": "^26.15.3",
-    "electron-is-dev": "^3.0.1"
-  },
-  "build": {
-    "appId": "com.elektrodb",
-    "productName": "ElektroDB",
-    "asar": true,
-    "asarUnpack": [
-      "src/**",
-      "data/**",
-      "PŘEHLED/**"
-    ],
-    "files": [
-      "electron-main.js",
-      "preload.js",
-      "src/**",
-      "public/**",
-      "data/**",
-      "PŘEHLED/**",
-      "package.json"
-    ],
-    "directories": {
-      "buildResources": "assets"
-    },
-    "win": {
-      "target": ["nsis"],
-      "icon": "assets/icon.ico",
-      "artifactName": "${productName}-${version}-Setup.${ext}"
-    },
-    "nsis": {
-      "oneClick": false,
-      "allowToChangeInstallationDirectory": true,
-      "createDesktopShortcut": true,
-      "createStartMenuShortcut": true,
-      "shortcutName": "ElektroDB"
-    },
-
-    "mac": {
-      "target": ["dmg", "zip"],
-      "icon": "assets/icon-512.png"
-    },
-    "linux": {
-      "target": ["deb", "AppImage"],
-      "icon": "assets/icon.png"
-    }
   }
 }
