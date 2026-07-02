@@ -234,6 +234,10 @@ class DatabaseManager {
     return this.db.prepare('SELECT * FROM norms WHERE id = ?').get(id);
   }
 
+  getNormSnapshot() {
+    return this.db.prepare('SELECT * FROM norms ORDER BY id').all();
+  }
+
   // ---------------------------------------------------------------------------
   // Utils
   // ---------------------------------------------------------------------------

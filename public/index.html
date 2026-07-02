@@ -416,6 +416,19 @@ document.getElementById('refresh-db-btn').addEventListener('click', async functi
     if (!response.ok) throw new Error(data.error || 'Aktualizace selhala');
     const lines = [];
     lines.push('Databáze aktualizována: ' + data.after.total.toLocaleString('cs') + ' záznamů.');
+    if (data.changes && data.changes.norms) {
+      lines.push(
+        'Aktualizované normy: '
+        + data.changes.norms.changedTotal.toLocaleString('cs')
+        + ' (nové '
+        + data.changes.norms.added.toLocaleString('cs')
+        + ', změněné '
+        + data.changes.norms.updated.toLocaleString('cs')
+        + ', odstraněné '
+        + data.changes.norms.removed.toLocaleString('cs')
+        + ').'
+      );
+    }
     if (data.changes.totalDelta === 0) {
       lines.push('Počet záznamů se nezměnil.');
     } else {

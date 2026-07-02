@@ -141,6 +141,57 @@ function statusCounts(rows) {
   }));
 }
 
+function fingerprintNorm(row) {
+  return [
+    row.identif, row.stupen, row.znak, row.cast, row.podcast, row.poradi,
+    row.nazev, row.nazev_ang, row.platnost,
+    row.schvalena, row.ucinnost, row.vydana, row.dat_uk,
+    row.vestnik, row.vestnik_z,
+    row.skupina, row.katalog, row.strany, row.format,
+    row.anotace, row.klice,
+  ].map(v => (v == null ? '' : String(v))).join('\u001f');
+}
+
+function snapshotToMap(rows) {
+  const map = new Map();
+  for (const row of rows) {
+    map.set(row.id, fingerprintNorm(row));
+  }
+  return map;
+}
+
+function computeNormChanges(beforeRows, afterRows) {
+  const before = snapshotToMap(beforeRows);
+  const after = snapshotToMap(afterRows);
+
+  let added = 0;
+  let updated = 0;
+  let removed = 0;
+
+  for (const [id, afterFp] of after.entries()) {
+    if (!before.has(id)) {
+      added += 1;
+      continue;
+    }
+    if (before.get(id) !== afterFp) {
+      updated += 1;
+    }
+  }
+
+  for (const id of before.keys()) {
+    if (!after.has(id)) {
+      removed += 1;
+    }
+  }
+
+  return {
+    added,
+    updated,
+    removed,
+    changedTotal: added + updated + removed,
+  };
+}
+
 app.post('/api/update-database', async (_req, res) => {
   const repoRoot = path.join(__dirname, '..');
   const importPath = path.join(repoRoot, 'import.js');
@@ -150,6 +201,7 @@ app.post('/api/update-database', async (_req, res) => {
   };
 
   try {
+    const beforeNorms = db.getNormSnapshot();
     const beforeStats = db.getStats();
     const before = {
       total: db.getNormsCount(),
@@ -176,6 +228,7 @@ app.post('/api/update-database', async (_req, res) => {
     }
 
     db.initialize();
+    const afterNorms = db.getNormSnapshot();
     const afterStats = db.getStats();
     const after = {
       total: db.getNormsCount(),
@@ -185,6 +238,7 @@ app.post('/api/update-database', async (_req, res) => {
 
     const changes = {
       totalDelta: after.total - before.total,
+      norms: computeNormChanges(beforeNorms, afterNorms),
       tables: Object.keys(after.tables).map(name => ({
         name,
         before: before.tables[name],
