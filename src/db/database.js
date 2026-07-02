@@ -141,6 +141,24 @@ class DatabaseManager {
     return this.db.prepare(sql).all();
   }
 
+  getNormsCount(platnost = null) {
+    if (platnost) {
+      return this.db.prepare('SELECT COUNT(*) AS n FROM norms WHERE platnost = ?').get(platnost).n;
+    }
+    return this.db.prepare('SELECT COUNT(*) AS n FROM norms').get().n;
+  }
+
+  getNormsPage(limit = 50, offset = 0, platnost = null) {
+    if (platnost) {
+      return this.db.prepare(
+        'SELECT * FROM norms WHERE platnost = ? ORDER BY identif LIMIT ? OFFSET ?'
+      ).all(platnost, limit, offset);
+    }
+    return this.db.prepare(
+      'SELECT * FROM norms ORDER BY identif LIMIT ? OFFSET ?'
+    ).all(limit, offset);
+  }
+
   getNormsByStatus(platnost) {
     return this.db.prepare(
       'SELECT * FROM norms WHERE platnost = ? ORDER BY identif'

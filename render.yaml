@@ -3,6 +3,7 @@ services:
     name: elektrodb
     env: docker
     autoDeploy: true
+    healthCheckPath: /health
     envVars:
       - key: NODE_ENV
         value: production

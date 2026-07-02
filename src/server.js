@@ -103,12 +103,13 @@ app.get('/api/norms', (req, res) => {
   const platnost = req.query.platnost?.toUpperCase();
   const limit    = Math.min(parseInt(req.query.limit) || 50, 200);
   const offset   = parseInt(req.query.offset) || 0;
-  const all      = platnost ? db.getNormsByStatus(platnost) : db.getAllNorms();
+  const total    = db.getNormsCount(platnost || null);
+  const results  = db.getNormsPage(limit, offset, platnost || null);
   res.json({
-    total:   all.length,
+    total,
     limit,
     offset,
-    results: all.slice(offset, offset + limit),
+    results,
   });
 });
 
@@ -151,7 +152,7 @@ app.post('/api/update-database', async (_req, res) => {
   try {
     const beforeStats = db.getStats();
     const before = {
-      total: db.getAllNorms().length,
+      total: db.getNormsCount(),
       tables: tableCounts(),
       statuses: statusCounts(beforeStats),
     };
@@ -177,7 +178,7 @@ app.post('/api/update-database', async (_req, res) => {
     db.initialize();
     const afterStats = db.getStats();
     const after = {
-      total: db.getAllNorms().length,
+      total: db.getNormsCount(),
       tables: tableCounts(),
       statuses: statusCounts(afterStats),
     };

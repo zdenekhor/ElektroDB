@@ -17,8 +17,11 @@ COPY . .
 # Vytvoření data adresáře
 RUN mkdir -p data exports
 
-# Import dat jen při prvním startu (pokud DB neexistuje)
-CMD ["sh", "-c", "[ -f data/elektro-db.sqlite ] || npm run import; npm start"]
+# Import dat při buildu image (rychlejší start kontejneru na Renderu)
+RUN npm run import
+
+# Spuštění aplikace
+CMD ["npm", "start"]
 
 # Port
 EXPOSE 3000
